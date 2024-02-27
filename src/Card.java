@@ -2,9 +2,9 @@ public class Card {
     private int value;
     private int suit;
 
-    public Card (int value, int suit){
-        this.value = value;
+    public Card (int suit, int value){
         this.suit = suit;
+        this.value = value;
     }
 
     public int getSuit() {
@@ -16,7 +16,7 @@ public class Card {
     }
 
     public String toString() {
-        String[] suits = {"Hearts" , "Diamonds", "Clubs", "Spades"};
+        String[] suits = {"♥" , "♦", "♣", "♠"};
         String[] values = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
         return values[this.value-2] + " " + suits[this.suit];
     }
