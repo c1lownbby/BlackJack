@@ -6,13 +6,15 @@ public class Blackjack {
     private Deck deck;
     private ArrayList<Card> player;
     private ArrayList<Card> dealer;
-    Scanner kb;
+    private Scanner kb;
+    private int balance;
 
     public Blackjack() {
         deck = new Deck();
         player = new ArrayList<>();
         dealer = new ArrayList<>();
         kb = new Scanner(System.in);
+        balance = 1500;
     }
 
     public static void main(String[] args) {
@@ -21,125 +23,143 @@ public class Blackjack {
     }
 
     private void run() {
-        //dealCards()
-        deck.shuffle();
+        while (balance > 0) {
+            System.out.println("Your balance is: $" + balance);
+            System.out.println("Place your bets! (1-" + balance + "):");
+            int bet = kb.nextInt();
 
-        dealFirstSetOfCards();
-        System.out.println("dealer hand: \t" + dealer.get(0)+ " [?]");
-        System.out.println("player hand: \t" + player.get(0)+ " " + player.get(1));
+            // validate the betting amount
+            while (bet <= 0 || bet > balance) {
+                System.out.println("Sorry, that's an invalid bet :(. Please place a bet between 1 and " + balance + ":");
+                bet = kb.nextInt();
+            }
 
-        playerTurn();
-        dealerTurn();
 
-        //while(response.equals("hit)
-        //do{...}while(logic)
+            balance -= bet;
 
-        for(int i = 0; i < player.size(); i++) {
-            //not complete
-            //print what is below
-            player.get(i);
+
+            deck.shuffle();
+
+            //deals the first set of cards
+            dealInitialCards();
+            //prints both hands
+            System.out.println("Dealer hand:\t" + dealer.get(0) + " [?]");
+            System.out.println("Player hand:\t" + player.get(0) + " " + player.get(1));
+
+            //player's turn
+            playerTurn();
+
+            //dealer's turn
+            dealerTurn();
+
+            //determine the winner + take/give money back to player
+            determineWinner(bet);
+
+            //prints the hands one more time
+
+            System.out.println("Dealer's full hand:");
+            printHand(dealer);
+
+            System.out.println("Player's full hand:");
+            printHand(player);
+
+            player.clear();
+            dealer.clear();
         }
 
+        //ends when the player's balance is 0
 
-
-
-
+        System.out.println("Game over! You have run out of balance.");
     }
 
-    public void dealFirstSetOfCards(){
-        System.out.println("Dealing cards!");
+    private void dealInitialCards() {
         player.add(deck.getCard());
         dealer.add(deck.getCard());
         player.add(deck.getCard());
         dealer.add(deck.getCard());
     }
 
-    public void playerTurn() {
+    private void playerTurn() {
         while (true) {
-            System.out.println();
-            System.out.println("hit or stay? [h/s]");
-            String response = kb.nextLine();
-            int playerTotal = calculateHandValue(player);
-            //toLowerCase or toUpperCase
-            if(response.equals("h")) {
+
+            System.out.println("\nDo you want to hit or stay: h/s");
+            String response = kb.next();
+            if (response.equalsIgnoreCase("h")) {
                 player.add(deck.getCard());
-                playerHand();
-                if (calculateHandValue(player) > 21) {
-                    System.out.println("You busted D:! You lose.");
+                System.out.println("Player hand:");
+                printHand(player);
+                int handValue = calculateHandValue(player);
+                System.out.println("Hand value: " + handValue);
+                if (handValue > 21) { //if the player exceeds a hand value of 21 the round ends
+                    System.out.println("Bust! Player hand value is over 21.");
                     break;
                 }
-            }
-            else if (response.equals("s")){
+            } else if (response.equalsIgnoreCase("s")) {
                 break;
             }
-            else {
-                System.out.println("Invalid! Please enter either h for hit or s for stay.");
-            }
         }
-
     }
 
-    public void dealerTurn() {
-        System.out.println("Dealer's hand:");
-        for (Card card : dealer) {
-            System.out.println(card + " ");
+    private void dealerTurn() {
+        System.out.println("\nDealer's turn:");
+
+        if (calculateHandValue(player) > 21) {
+            System.out.println("Player has busted. The Dealer will not draw.");
+            return;
         }
-        System.out.println();
-        while (calculateHandValue(dealer) < 17) {
+
+        while (calculateHandValue(dealer) < 17) { //if the dealer's hand is lower than 17 the draw again
             dealer.add(deck.getCard());
-            System.out.println("Dealer hits.");
-            System.out.println("Dealer's hand: ");
-            for (Card card : dealer) {
-                System.out.print(card + " ");
-            }
-            System.out.println();
-        }
-        if (calculateHandValue(dealer) > 21) {
-            System.out.println("Dealer busted :D. You win!");
+            System.out.println("Dealer draws: " + dealer.get(dealer.size() - 1));
+            System.out.println("Dealer's hand:");
+            printHand(dealer);
         }
     }
 
-    public void playerHand() {
-        System.out.println("Player's hand:");
-        for (Card card : player) {
-            System.out.println(card + " ");
+    private void determineWinner(int bet) {
+        int playerTotal = calculateHandValue(player);
+        int dealerTotal = calculateHandValue(dealer);
+
+        System.out.println("\nPlayer's hand value: " + playerTotal);
+        System.out.println("Dealer's hand value: " + dealerTotal);
+
+        if (playerTotal > 21) {
+            System.out.println("Bust! Dealer wins.");
+        } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
+            System.out.println("Congratulations! You win! :D");
+            balance += 2 * bet;
+        } else if (playerTotal == dealerTotal) {
+            System.out.println("It's a tie!");
+            balance += bet;
+        } else {
+            System.out.println("Dealer wins! Good luck next time!");
         }
-        System.out.println();
     }
 
+    //calculates the hand values of both the dealer and the player
     private int calculateHandValue(ArrayList<Card> hand) {
         int totalValue = 0;
         int numAces = 0;
+
         for (Card card : hand) {
             int cardValue = card.getValue();
-            if (cardValue == 11){
+            if (cardValue == 11) {
                 numAces++;
             }
             totalValue += cardValue;
         }
+
         while (totalValue > 21 && numAces > 0) {
             totalValue -= 10;
             numAces--;
         }
+
         return totalValue;
     }
 
-
-    private void determineWinner() {
-        int playerTotal = calculateHandValue(player);
-        int dealerTotal = calculateHandValue(dealer);
-
-        System.out.println("Players hand: ");
-
+    private void printHand(ArrayList<Card> hand) {
+        for (Card card : hand) {
+            System.out.println(card);
+        }
     }
-
-    //write push
-
-
-
-
-    //playerTurn()
-    //dealerTurn()
-    //calcHandValue()
-
 }
