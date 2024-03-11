@@ -82,7 +82,7 @@ public class Blackjack {
     private void playerTurn() {
         while (true) {
 
-            System.out.println("\nDo you want to hit or stay: h/s");
+            System.out.println("\nDo you want to hit or stand: h/s");
             String response = kb.next();
             if (response.equalsIgnoreCase("h")) {
                 player.add(deck.getCard());
